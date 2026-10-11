@@ -8,43 +8,52 @@ import Grid from '@mui/material/Grid';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import logo from '../../assets/logo.svg';
-
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 export default function LoginForm() {
-  const [showAlert, setShowAlert] = useState(false);
-  const validateForm = (event) => {
-    event.preventDefault()
-    const data = new FormData(event.currentTarget);
-    const email = data.get('email');
-    const password = data.get('password');
-
-    // Add validation code here
-
-  }
+  const [showAlert, setShowAlert] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-    validateForm(event);
-    setShowAlert("Login Successful");
+    const email = data.get('email').trim();
+    const password = data.get('password');
+
+    const validEmail = validateEmail(email);
+    const validPassword = validatePassword(password);
+
+    setEmailError(
+      validEmail ? '' : 'Please enter a valid email address.'
+    );
+
+    setPasswordError(
+      validPassword
+        ? ''
+        : 'Password must be at least 8 characters and contain uppercase, lowercase, a number, and a special character.'
+    );
+
+    if (validEmail && validPassword) {
+      setShowAlert('Login Successful');
+    } else {
+      setShowAlert('');
+    }
   };
 
   return (
     <>
-      {showAlert &&
-        <Snackbar
-          open={showAlert}
-          autoHideDuration={6000}
-          onClose={() => setShowAlert(false)}
-          message={showAlert}
-        >
-          <Alert>{showAlert}</Alert>
-        </Snackbar>
-      }
+      <Snackbar
+        open={Boolean(showAlert)}
+        autoHideDuration={6000}
+        onClose={() => setShowAlert('')}
+      >
+        <Alert severity="success" onClose={() => setShowAlert('')}>
+          {showAlert}
+        </Alert>
+      </Snackbar>
+
       <Grid
         item
         xs={false}
@@ -54,11 +63,14 @@ export default function LoginForm() {
           backgroundImage: 'url(https://source.unsplash.com/random)',
           backgroundRepeat: 'no-repeat',
           backgroundColor: (t) =>
-            t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
+            t.palette.mode === 'light'
+              ? t.palette.grey[50]
+              : t.palette.grey[900],
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
+
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
         <Box
           sx={{
@@ -69,14 +81,14 @@ export default function LoginForm() {
             alignItems: 'center',
           }}
         >
-          <Box sx={{
-            my: 2
-          }}>
+          <Box sx={{ my: 2 }}>
             <img src={logo} width="147" alt="harrison.ai" />
           </Box>
+
           <Typography component="h1" variant="h5">
             Sign in
           </Typography>
+
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
             <TextField
               margin="normal"
@@ -87,7 +99,10 @@ export default function LoginForm() {
               name="email"
               autoComplete="email"
               autoFocus
+              error={Boolean(emailError)}
+              helperText={emailError}
             />
+
             <TextField
               margin="normal"
               required
@@ -97,7 +112,10 @@ export default function LoginForm() {
               type="password"
               id="password"
               autoComplete="current-password"
+              error={Boolean(passwordError)}
+              helperText={passwordError}
             />
+
             <Button
               type="submit"
               fullWidth
